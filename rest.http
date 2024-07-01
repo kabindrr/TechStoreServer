@@ -12,3 +12,13 @@ Content-Type: application/json
 {
     "email": "a@a.com"
 }
+
+
+# ============= categoris
+### post new cat
+POST {{api}}/categories
+Content-Type: application/json
+
+{
+    "title": "New Laptops"
+}
