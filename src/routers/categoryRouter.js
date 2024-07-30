@@ -2,6 +2,7 @@ import express from "express";
 const router = express.Router();
 import slugify from "slugify";
 import {
+  editCategory,
   getAllCategories,
   insertCategory,
 } from "../models/category/CategoryModel.js";
@@ -50,6 +51,26 @@ router.get("/", async (req, res, next) => {
       message: "New category has been added",
       categories,
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// edit route
+router.put("/edit", async (req, res, next) => {
+  try {
+    const { _id, slug, ...rest } = req.body;
+    const editedCat = await editCategory(_id, rest);
+
+    editedCat?._id
+      ? res.json({
+          status: "success",
+          message: "Edit Success",
+        })
+      : res.json({
+          status: "error",
+          message: "Edit Failed",
+        });
   } catch (error) {
     next(error);
   }

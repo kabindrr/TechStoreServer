@@ -6,40 +6,58 @@ import {
   getAllProducts,
   insertProduct,
 } from "../models/product/ProductModel.js";
+import multerUpload from "../utils/uploadMulter.js";
 
-router.post("/", async (req, res, next) => {
-  try {
-    const { name } = req.body;
+router.post(
+  "/",
+  multerUpload.array("images", 5),
 
-    const slug = slugify(name, {
-      lower: true,
-    });
+  async (req, res, next) => {
+    try {
+      const { name } = req.body;
 
-    const prod = await insertProduct({
-      ...req.body,
-      slug,
-    });
-
-    if (prod?._id) {
-      return res.json({
-        status: "success",
-        message: "New product has been added",
+      const slug = slugify(name, {
+        lower: true,
       });
-    }
 
-    res.json({
-      status: "error",
-      message: "Unable to add product, try again later",
-    });
-  } catch (error) {
-    if (error.message.includes("E11000 duplicate")) {
-      error.message =
-        "This product slug or sku already exist, please change the name of the Product or sku and try agian.";
-      error.statusCode = 400;
+      //generate thumbnail path
+      //generate images paths
+
+      if (req.files?.length > 0) {
+        const newImgs = req.files.map((item) => {
+          return item.path.replace("public", "");
+        });
+
+        req.body.images = newImgs;
+
+        req.body.thumbnail = newImgs[0];
+      }
+      const prod = await insertProduct({
+        ...req.body,
+        slug,
+      });
+
+      if (prod?._id) {
+        return res.json({
+          status: "success",
+          message: "New product has been added",
+        });
+      }
+
+      res.json({
+        status: "error",
+        message: "Unable to add product, try again later",
+      });
+    } catch (error) {
+      if (error.message.includes("E11000 duplicate")) {
+        error.message =
+          "This product slug or sku already exist, please change the name of the Product or sku and try agian.";
+        error.statusCode = 400;
+      }
+      next(error);
     }
-    next(error);
   }
-});
+);
 
 router.get("/", async (req, res, next) => {
   try {
